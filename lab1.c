@@ -1,6 +1,7 @@
 /* lab1.c
-   Created by  Setthawut Leelawatthanapanit    ID: 60070503466
+    Created by  Setthawut Leelawatthanapanit    ID: 60070503466
                Naphatthorn Kayanthanakorn      ID: 60070503482
+    Date: 24/01/2020
 */
 
 #include <mpi.h>
