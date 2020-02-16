@@ -38,12 +38,13 @@ int main(int argc, char* argv[]) {
             exit(0);
         }
 
-        groupRows = nrows1/p;
+        groupRows = nrows1/p;   
         remainRows = nrows1 - (groupRows * p);
 
-        //printf("nrows1: %d | ncols1: %d | nrows2: %d | ncols2: %d | groupRows: %d | remainRows: %d\n", nrows1, ncols1, nrows2, ncols2, groupRows, remainRows);
+        printf("nrows1: %d | ncols1: %d | nrows2: %d | ncols2: %d | groupRows: %d | remainRows: %d\n", nrows1, ncols1, nrows2, ncols2, groupRows, remainRows);
 
-        pMatRes = createMatrix(nrows1, ncols1);
+        pMatRes = createMatrix(nrows1, ncols2);
+
     }
 
     // Bcast the information to all ranks
@@ -75,7 +76,7 @@ int main(int argc, char* argv[]) {
         startTime = MPI_Wtime();
         if (p > 1) {
             for (int i = 1; i < p; i++) {
-                MPI_Send(&(pMat1[nrows1 * i]), groupRows * ncols1, MPI_INT, i, 0, MPI_COMM_WORLD);
+                MPI_Send(&(pMat1[groupRows * ncols1 * i]), groupRows * ncols1, MPI_INT, i, 0, MPI_COMM_WORLD);
                 printf("Rank %d send the information to rank %d successfully\n", rank, i);
             }
 
@@ -84,10 +85,11 @@ int main(int argc, char* argv[]) {
             }
 
             for (int i = 1; i < p; i++) {
-                MPI_Recv(&(pMatRes[groupRows * i]), groupRows * ncols2, MPI_INT, i, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Recv(&(pMatRes[groupRows * ncols2 * i]), groupRows * ncols2, MPI_INT, i, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                printf("Rank %d received the result from rank %d\n", rank, i);
             }
         }
-  
+
         pMatRes = multiplyMatrix(pMatRes, pMat1, pMat2, 0, groupRows, ncols1, nrows2, ncols2, nrows1, ncols2);
 
         endTime = MPI_Wtime();
@@ -98,7 +100,7 @@ int main(int argc, char* argv[]) {
         printf("\t====================================\n");
 
         writeFile(pMatRes, "output.txt", nrows1, ncols2);
-        
+
         free(pMat1);
         free(pMat2);
         free(pMatRes);
@@ -107,11 +109,8 @@ int main(int argc, char* argv[]) {
     // Calculate in other ranks
     else {
         MPI_Recv(&(pMatBuf1[0]), groupRows * ncols1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        printf("Rank %d received the sliced matrix from rank 0\n", rank);
-
         pMatBufRes = multiplyMatrix(pMatBufRes, pMatBuf1, pMat2, 0, groupRows, ncols1, nrows2, ncols2, groupRows, ncols2);
-
-        MPI_Send(&(pMatBufRes[0]), groupRows* ncols2, MPI_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send(&(pMatBufRes[0]), groupRows * ncols2, MPI_INT, 0, 1, MPI_COMM_WORLD);
 
         printf("Rank %d sent the result to rank 0\n", rank);
         printf("Rank %d complete\n", rank);
@@ -173,7 +172,7 @@ int* createMatrix(int nrows, int ncols) {
     return pData;
 }
 
-int* multiplyMatrix(int* pMatRes, int* pMat1, int* pMat2, int startRow,int nrows1, int ncols1, int nrows2, int ncols2, int nrowsRes, int ncolsRes) {
+int* multiplyMatrix(int* pMatRes, int* pMat1, int* pMat2, int startRow, int nrows1, int ncols1, int nrows2, int ncols2, int nrowsRes, int ncolsRes) {
     for (int i = startRow; i < nrows1; i++) {
         for (int j = 0; j < ncols2; j++) {
             for (int k = 0; k < nrows2; k++) {
@@ -183,7 +182,6 @@ int* multiplyMatrix(int* pMatRes, int* pMat1, int* pMat2, int startRow,int nrows
                 //printf("%d-%d  ", pos1, pos2);
                 pMatRes[(ncols2 * i) + j] += pMat1[(nrows2 * i) + k] * pMat2[(nrows2 * j) + k];
             }
-            //printf("\n");
         }
     }
     return pMatRes;
@@ -228,23 +226,12 @@ void writeFile(int* pMatRes, const char* fileName, int nrows, int ncols) {
 
     fprintf(fp, "%d %d\n", nrows, ncols);
 
-    /*for (int i = 0; i < nrows; i++) {
-        for (int j = 0; j < ncols; j++) {
-            fprintf(fp, "%.1f", pMatRes[i][j]);
-            if (j < ncols - 1)
-                fprintf(fp, " ");
-        }
-        fprintf(fp, "\n");
-    }*/
-
     for (int i = 0; i < nrows; i++) {
         for (int j = 0; j < ncols; j++) {
-            //printf("%d", pMatRes[(i * ncols) + j]);
             fprintf(fp, "%d", pMatRes[(i * ncols) + j]);
             if (j < ncols - 1)
                 fprintf(fp, " ");
         }
-        //printf("\n");
         fprintf(fp, "\n");
     }
 
