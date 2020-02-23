@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     double startTime = MPI_Wtime();
     if (p == 1) {
         FILE* fp = fopen(argv[1], "r");;
-        int i = 0, nrows, ncols;
+        int i = 0, j, nrows, ncols;
         fscanf(fp, "%d %d", &nrows, &ncols);
         float* pMat = (float*)calloc(nrows * ncols, sizeof(float));
         float* pMatRes = (float*)calloc(nrows * ncols, sizeof(float));
@@ -46,8 +46,8 @@ int main(int argc, char* argv[]) {
                 int posF = ((i + 1) * ncols) - 3;
                 int posG = ((i + 1) * ncols) - 2;
                 int posH = ((i + 1) * ncols) - 1;
-                for (int k = posRes; k > (posRes - ncols) + 2; k--) {
-                    pMatRes[k] = (pMat[posA--] + pMat[posB--] + pMat[posC--] + pMat[posD--] + pMat[posE--] + pMat[posF--] + pMat[posG--] + pMat[posH--] + pMat[k]) / 9;
+                for (j = posRes; j > (posRes - ncols) + 2; j--) {
+                    pMatRes[j] = (pMat[posA--] + pMat[posB--] + pMat[posC--] + pMat[posD--] + pMat[posE--] + pMat[posF--] + pMat[posG--] + pMat[posH--] + pMat[j]) / 9;
                 }
                 i++;
             }
@@ -55,8 +55,8 @@ int main(int argc, char* argv[]) {
             endRow = nrows;
             while (i < endRow) {
                 int posRes = (i * ncols) - 2;
-                for (int k = posRes; k > (posRes - ncols) + 2; k--) {
-                    pMat[k] = pMatRes[k];
+                for (j = posRes; j > (posRes - ncols) + 2; j--) {
+                    pMat[j] = pMatRes[j];
                 }
                 i++;
             }
@@ -104,16 +104,16 @@ int main(int argc, char* argv[]) {
                 int posF = ((i + 1) * ncols) - 3;
                 int posG = ((i + 1) * ncols) - 2;
                 int posH = ((i + 1) * ncols) - 1;
-                for (int k = posRes; k > (posRes - ncols) + 2; k--) {
-                    pMatRes[k] = (pMat[posA--] + pMat[posB--] + pMat[posC--] + pMat[posD--] + pMat[posE--] + pMat[posF--] + pMat[posG--] + pMat[posH--] + pMat[k]) / 9;
+                for (j = posRes; j > (posRes - ncols) + 2; j--) {
+                    pMatRes[j] = (pMat[posA--] + pMat[posB--] + pMat[posC--] + pMat[posD--] + pMat[posE--] + pMat[posF--] + pMat[posG--] + pMat[posH--] + pMat[j]) / 9;
                 }
                 i++;
             }
             i = 2;
             while (i < spreadRows[rank] + 2) {
                 int posRes = (i * ncols) - 2;
-                for (int k = posRes; k > (posRes - ncols) + 2; k--) {
-                    pMat[k] = pMatRes[k];
+                for (j = posRes; j > (posRes - ncols) + 2; j--) {
+                    pMat[j] = pMatRes[j];
                 }
                 i++;
             }
@@ -150,16 +150,16 @@ int main(int argc, char* argv[]) {
                 int posF = ((i + 1) * ncols) - 3;
                 int posG = ((i + 1) * ncols) - 2;
                 int posH = ((i + 1) * ncols) - 1;
-                for (int k = posRes; k > (posRes - ncols) + 2; k--) {
-                    pMatRes[k] = (pMatBuf[posA--] + pMatBuf[posB--] + pMatBuf[posC--] + pMatBuf[posD--] + pMatBuf[posE--] + pMatBuf[posF--] + pMatBuf[posG--] + pMatBuf[posH--] + pMatBuf[k]) / 9;
+                for (j = posRes; j > (posRes - ncols) + 2; j--) {
+                    pMatRes[j] = (pMatBuf[posA--] + pMatBuf[posB--] + pMatBuf[posC--] + pMatBuf[posD--] + pMatBuf[posE--] + pMatBuf[posF--] + pMatBuf[posG--] + pMatBuf[posH--] + pMatBuf[j]) / 9;
                 }
                 i++;
             }
             i = 2;
             while (i < groupRows + 2) {
                 int posRes = (i * ncols) - 2;
-                for (int k = posRes; k > (posRes - ncols) + 2; k--) {
-                    pMatBuf[k] = pMatRes[k];
+                for (j = posRes; j > (posRes - ncols) + 2; j--) {
+                    pMatBuf[j] = pMatRes[j];
                 }
                 i++;
             }
